@@ -17,6 +17,8 @@ class @Restivus
           token: token
       onLoggedIn: -> {}
       onLoggedOut: -> {}
+      onRouteEnter: -> {}
+      routeEnterVerify: false
       defaultHeaders:
         'Content-Type': 'application/json'
       enableCors: true

@@ -141,10 +141,16 @@ class @Route
     @returns The endpoint response or a 401 if authentication fails
   ###
   _callEndpoint: (endpointContext, endpoint) ->
+    if _.isFunction(@api._config.routeEnterVerify)
+      hookResult = @api._config.onRouteEnter.call endpointContext
     # Call the endpoint if authentication doesn't fail
     if @_authAccepted endpointContext, endpoint
       if @_roleAccepted endpointContext, endpoint
-        endpoint.action.call endpointContext
+        if @api._config.routeEnterVerify and !hookResult
+          statusCode: 403
+          body: {status: 'error', message: 'Route hook verification failed.'}
+        else
+          endpoint.action.call endpointContext
       else
         statusCode: 403
         body: {status: 'error', message: 'You do not have permission to do this.'}
@@ -232,7 +238,7 @@ class @Route
       response.write body
       response.end()
     if statusCode in [401, 403]
-      # Hackers can measure the response time to determine things like whether the 401 response was 
+      # Hackers can measure the response time to determine things like whether the 401 response was
       # caused by bad user id vs bad password.
       # In doing so, they can first scan for valid user ids regardless of valid passwords.
       # Delay by a random amount to reduce the ability for a hacker to determine the response time.
